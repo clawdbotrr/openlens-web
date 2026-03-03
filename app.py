@@ -86,104 +86,116 @@ st.markdown("""
 # ============================================================
 # SESSION STATE MANAGEMENT
 # ============================================================
-if 'age_confirmed' not in st.session_state:
-    st.session_state.age_confirmed = False
+if 'authenticated' not in st.session_state:
+    st.session_state.authenticated = False
+
+# Initialize other session variables
+if 'api_url' not in st.session_state:
+    st.session_state.api_url = ""
+if 'api_key' not in st.session_state:
+    st.session_state.api_key = ""
+if 'task_id' not in st.session_state:
+    st.session_state.task_id = None
+if 'task_status' not in st.session_state:
+    st.session_state.task_status = None
+if 'video_url' not in st.session_state:
+    st.session_state.video_url = None
+if 'progress' not in st.session_state:
+    st.session_state.progress = 0
+if 'logs' not in st.session_state:
+    st.session_state.logs = []
+if 'uploaded_image_url' not in st.session_state:
+    st.session_state.uploaded_image_url = None
+if 'text_api_url' not in st.session_state:
+    st.session_state.text_api_url = ""
+if 'text_api_key' not in st.session_state:
+    st.session_state.text_api_key = ""
+if 'text_model' not in st.session_state:
+    st.session_state.text_model = ""
+if 'refined_prompt' not in st.session_state:
+    st.session_state.refined_prompt = ""
 
 # ============================================================
-# AGE VERIFICATION POPUP
+# AGE VERIFICATION PAGE (if not authenticated)
 # ============================================================
-if not st.session_state.age_confirmed:
+if not st.session_state.authenticated:
     st.markdown("""
     <style>
-    .age-popup {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.95);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
-    .age-box {
+    .age-container {
+        max-width: 600px;
+        margin: 80px auto;
+        padding: 50px;
         background: #1a1a1a;
         border: 2px solid #667eea;
-        border-radius: 16px;
-        padding: 40px;
-        max-width: 500px;
+        border-radius: 20px;
         text-align: center;
-        box-shadow: 0 0 40px rgba(102, 126, 234, 0.3);
     }
     .age-title {
-        font-size: 28px;
+        font-size: 36px;
         font-weight: bold;
-        color: #fff;
-        margin-bottom: 20px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        margin-bottom: 30px;
     }
     .age-text {
         color: #ccc;
         font-size: 16px;
-        line-height: 1.8;
+        line-height: 2.2;
         margin-bottom: 30px;
     }
     .age-warning {
         color: #ef4444;
         font-size: 14px;
-        margin-top: 20px;
         padding: 15px;
         background: rgba(239, 68, 68, 0.1);
         border-radius: 8px;
+        margin-top: 20px;
     }
     </style>
     
-    <div class="age-popup">
-        <div class="age-box">
-            <div class="age-title">⚠️ Age Verification Required</div>
-            <div class="age-text">
-                Welcome to <strong>OpenLens</strong>.<br><br>
-                This tool is a <strong>transparent gateway</strong> for AI video generation.<br><br>
-                By proceeding, you confirm that:<br>
-                ✅ I am <strong>18 years or older</strong><br>
-                ✅ I will use this tool <strong>legally and responsibly</strong><br>
-                ✅ I accept full responsibility for my generated content
-            </div>
-            <div class="age-warning">
-                ⚠️ Any illegal or harmful content generation is strictly prohibited.<br>
-                The operator assumes no liability for user-generated content.
-            </div>
+    <div class="age-container">
+        <div class="age-title">🎬 OpenLens</div>
+        <div class="age-text">
+            <strong>Age Verification Required</strong><br><br>
+            This is a <strong>transparent AI video generation gateway</strong>.<br><br>
+            Please confirm all of the following:
         </div>
     </div>
     """, unsafe_allow_html=True)
     
-    col_confirm1, col_confirm2 = st.columns([1, 1])
-    with col_confirm1:
-        if st.button("✅ I am 18+ / Confirm", use_container_width=True, key="age_confirm"):
-            st.session_state.age_confirmed = True
+    # Checkboxes for confirmation
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        check1 = st.checkbox("✅ I am 18+ years old")
+    with col2:
+        check2 = st.checkbox("✅ I will use legally")
+    with col3:
+        check3 = st.checkbox("✅ I accept responsibility")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Enter button - only enabled when all checked
+    if check1 and check2 and check3:
+        if st.button("✅ Enter OpenLens", type="primary", use_container_width=True):
+            st.session_state.authenticated = True
             st.rerun()
-    with col_confirm2:
-        if st.button("❌ Exit", use_container_width=True, key="age_exit"):
-            st.markdown("""
-            <script>
-            window.close();
-            </script>
-            <div style='text-align: center; padding: 100px; color: #666;'>
-                <h2>👋 Goodbye</h2>
-                <p>You can close this tab.</p>
-            </div>
-            """, unsafe_allow_html=True)
-            st.stop()
+    else:
+        st.button("✅ Enter OpenLens", disabled=True, use_container_width=True)
+        st.info("👆 Please check all boxes above to enter")
+    
+    st.markdown("---")
+    st.markdown("""
+    <div class="age-warning" style='text-align:center;'>
+        ⚠️ Illegal or harmful content generation is strictly prohibited
+    </div>
+    """, unsafe_allow_html=True)
     
     st.stop()
 
 # ============================================================
-# MAIN APP - AFTER AGE VERIFICATION
+# MAIN APP - AUTHENTICATED
 # ============================================================
-if 'api_key' not in st.session_state:
     st.session_state.api_key = ""
 if 'task_id' not in st.session_state:
     st.session_state.task_id = None
@@ -575,6 +587,12 @@ POST /v1/video/generations
   }
 }
     """, language="json")
+    
+    # Logout button
+    st.markdown("---")
+    if st.button("🚪 Exit / Logout", use_container_width=True):
+        st.session_state.authenticated = False
+        st.rerun()
 
 # ============================================================
 # MAIN CONTENT
