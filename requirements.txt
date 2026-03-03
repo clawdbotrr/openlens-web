@@ -1,0 +1,5 @@
+# OpenLens - Minimalist AI Video Generation Portal
+# Requirements for Streamlit deployment
+
+streamlit>=1.28.0
+requests>=2.31.0
